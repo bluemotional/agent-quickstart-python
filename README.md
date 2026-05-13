@@ -14,42 +14,50 @@ Real-time voice conversation with AI agents, featuring the Agora UIKit transcrip
 
 ## Prerequisites
 
+- [Python 3.8+](https://www.python.org/)
 - [Bun](https://bun.sh/) (package manager & script runner)
-- Python 3.8+
-- [Agora CLI](https://www.npmjs.com/package/agoraio-cli)
-- [Agora Account](https://console.agora.io/) with App ID & App Certificate
-- Agora project with Conversational AI managed provider support enabled
+- [Agora CLI](https://github.com/AgoraIO/cli)
 
 ## Quick Start
 
-### Local Python-Backed Development
+### Official CLI Flow
+
+Use the Agora CLI when starting fresh. It clones the Python starter, binds an Agora project, and writes the env file.
 
 ```bash
-# 1. Install dependencies
-bun install
-
-# 2. Login and connect the demo to Agora
+curl -fsSL https://raw.githubusercontent.com/AgoraIO/cli/main/install.sh | sh -s -- --add-to-path
 agora login
-agora project create my-first-voice-agent --feature rtc --feature convoai
-agora project use my-first-voice-agent
-agora project env write server-python/.env.local --with-secrets
-
-# 3. Start services
+agora init my-python-demo --template python
+cd my-python-demo
+bun install
 bun run dev
 ```
 
-`server-python/.env.example` remains the reference for the variables this demo uses. The recommended path is to let the Agora CLI write the real values into `server-python/.env.local`.
+Open http://localhost:3000 and click **Start conversation**.
 
-`bun install` is run from the repo root and manages the `web-client` package through the root Bun workspace.
+If the agent does not join or transcripts do not appear, run `agora project doctor --deep` to check credentials, feature enablement, network reachability, and local env binding.
+
+### Working from a Clone of This Repository
+
+Use this path if you already cloned **this** repo:
+
+```bash
+bun run setup
+agora project env write server/.env.local
+bun run dev
+```
+
+`bun run setup` is run from the repo root and manages the Python virtual environment plus the `web-client` package through the root Bun workspace.
 
 Services will be available at:
+
 - Frontend: http://localhost:3000
 - Backend: http://localhost:8000
 - API Docs: http://localhost:8000/docs
 
 In local development, the browser still calls `/api/*` on the Next app. Those route handlers proxy to the FastAPI backend through `AGENT_BACKEND_URL=http://localhost:8000`, which the root scripts set automatically.
 
-### Single-Target Web Deployment
+## Deployment Env
 
 Deploy `web-client` as a Next.js app. In this mode, the Next route handlers serve these endpoints directly:
 
@@ -67,32 +75,22 @@ AGENT_GREETING=optional_custom_greeting
 
 Do not set `AGENT_BACKEND_URL` in deployment unless you intentionally want the web app to proxy to an external Python service.
 
-## Configuration
-
-Recommended:
-
-```bash
-agora project env write server-python/.env.local --with-secrets
-```
-
-Reference template:
-
-```bash
-# Agora Credentials (required)
-AGORA_APP_ID=your_agora_app_id
-AGORA_APP_CERTIFICATE=your_agora_app_certificate
-
-PORT=8000
-```
-
 Authentication uses Token007 (AccessToken2), generated automatically from `AGORA_APP_ID` and `AGORA_APP_CERTIFICATE`. Vendor credentials are no longer required in local setup; the backend defaults to the same DeepgramSTT + OpenAI + MiniMaxTTS managed configuration used by the current Next.js quickstart.
 
 Frontend deployment env vars live in the deployment target or `web-client/.env.local` when running the web app by itself. The browser does not need its own public Agora credentials in this sample.
 
 ## Commands
 
+Recommended daily commands:
+
 ```bash
-bun run dev          # Start both frontend and backend
+bun run setup       # install/refresh backend and frontend dependencies
+bun run dev         # start both frontend and backend
+```
+
+Additional commands:
+
+```bash
 bun run doctor       # Shared repo checks for any mode
 bun run doctor:local # Local Python-backed checks, including required env values
 bun run backend      # Backend only (port 8000)
@@ -118,16 +116,16 @@ bun run clean        # Clean build artifacts and venvs
 
 ## Troubleshooting
 
-| Problem | Check |
-|---------|-------|
-| Connection issues | Backend running on port 8000? |
-| Agora credentials not written yet | Run `agora project use my-first-voice-agent` and `agora project env write server-python/.env.local --with-secrets` |
-| Auth errors | `AGORA_APP_ID` and `AGORA_APP_CERTIFICATE` correct in `.env.local`? |
-| Agent fails to start | Confirm Agora managed provider access is enabled for this project, then check logs at http://localhost:8000/docs |
-| Frontend can't reach backend | If running local Python mode, confirm `AGENT_BACKEND_URL=http://localhost:8000` is set via the root frontend scripts |
-| `bun install` did not update the web app | Run it from the repo root; this repo uses a Bun workspace rooted here |
-| Deployed web app returns API auth errors | Confirm `AGORA_APP_ID` and `AGORA_APP_CERTIFICATE` are set in the deployment target and `AGENT_BACKEND_URL` is not pointing to localhost |
-| Unsure which service owns `/api/*` | Local dev: Next route handlers proxy to FastAPI. Deployment: Next route handlers handle requests directly unless `AGENT_BACKEND_URL` is set |
+| Problem                                  | Check                                                                                                                                                           |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Connection issues                        | Backend running on port 8000?                                                                                                                                   |
+| Agora credentials not written yet        | Run `agora project env write server/.env.local`.                                                                                                                |
+| Auth errors                              | Run `agora project doctor --deep` and confirm `AGORA_APP_ID` and `AGORA_APP_CERTIFICATE` are present in `server/.env.local`.                                    |
+| Agent fails to start                     | Run `agora project doctor --deep`, then check logs at http://localhost:8000/docs.                                                                               |
+| Frontend can't reach backend             | If running local Python mode, confirm `AGENT_BACKEND_URL=http://localhost:8000` is set via the root frontend scripts                                            |
+| `bun install` did not update the web app | Run it from the repo root; this repo uses a Bun workspace rooted here                                                                                           |
+| Deployed web app returns API auth errors | Confirm `AGORA_APP_ID` and `AGORA_APP_CERTIFICATE` are set in the deployment target and `AGENT_BACKEND_URL` is not pointing to localhost                        |
+| Unsure which service owns `/api/*`       | Local dev: Next route handlers proxy to FastAPI. Deployment: Next route handlers handle requests directly unless `AGENT_BACKEND_URL` is set                     |
 
 ## Verification
 

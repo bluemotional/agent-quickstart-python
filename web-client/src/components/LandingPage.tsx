@@ -9,7 +9,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { LoadingSkeleton } from '@/components/LoadingSkeleton'
 import { Button } from '@/components/ui/button'
 import { getConfig, startAgent, stopAgent } from '@/services/api'
-import type { AgoraRenewalTokens, AgoraSessionData } from '@/components/ConversationComponent'
+import type { AgoraRenewalTokens, AgoraTokenData } from '@/types/conversation'
 
 const ConversationComponent = dynamic(() => import('@/components/ConversationComponent'), {
   ssr: false,
@@ -33,11 +33,12 @@ const AgoraProvider = dynamic(
 )
 
 export default function LandingPage() {
-  const [sessionData, setSessionData] = useState<AgoraSessionData | null>(null)
+  const [showConversation, setShowConversation] = useState(false)
+  const [agoraData, setAgoraData] = useState<AgoraTokenData | null>(null)
   const [rtmClient, setRtmClient] = useState<RTMClient | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [agentStartWarning, setAgentStartWarning] = useState<string | null>(null)
+  const [agentJoinError, setAgentJoinError] = useState(false)
 
   useEffect(() => {
     import('agora-rtc-react').catch(() => {})
@@ -47,40 +48,39 @@ export default function LandingPage() {
   const handleStartConversation = async () => {
     setIsLoading(true)
     setError(null)
-    setAgentStartWarning(null)
+    setAgentJoinError(false)
 
     try {
       const config = await getConfig()
-      const nextSessionData: AgoraSessionData = {
-        appId: config.app_id,
+      const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID ?? config.app_id
+
+      const [agentIdResult, rtm] = await Promise.all([
+        startAgent(config.channel_name, Number(config.agent_uid), Number(config.uid)).catch((err) => {
+          console.error('Failed to start conversation with agent:', err)
+          setAgentJoinError(true)
+          return undefined
+        }),
+        (async () => {
+          const { default: AgoraRTM } = await import('agora-rtm')
+          const nextRtm: RTMClient = new AgoraRTM.RTM(appId, config.uid)
+          await nextRtm.login({ token: config.token })
+          await nextRtm.subscribe(config.channel_name)
+          return nextRtm
+        })(),
+      ])
+
+      setRtmClient(rtm)
+      setAgoraData({
         token: config.token,
         uid: config.uid,
         channel: config.channel_name,
+        appId: config.app_id,
         agentUid: config.agent_uid,
-      }
-
-      const { default: AgoraRTM } = await import('agora-rtm')
-      const nextRtmClient: RTMClient = new AgoraRTM.RTM(nextSessionData.appId, nextSessionData.uid)
-      await nextRtmClient.login({ token: nextSessionData.token })
-      await nextRtmClient.subscribe(nextSessionData.channel)
-
-      const agentId = await startAgent(
-        nextSessionData.channel,
-        Number(nextSessionData.agentUid),
-        Number(nextSessionData.uid),
-      ).catch((nextError) => {
-        setAgentStartWarning(
-          `Failed to connect with AI agent. ${
-            nextError instanceof Error ? nextError.message : 'The conversation may not work as expected.'
-          }`,
-        )
-        return undefined
+        agentId: agentIdResult,
       })
-
-      setRtmClient(nextRtmClient)
-      setSessionData({ ...nextSessionData, agentId })
+      setShowConversation(true)
     } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : 'Failed to start conversation')
+      setError('Failed to start conversation. Please try again.')
       console.error('Error starting conversation:', nextError)
     } finally {
       setIsLoading(false)
@@ -89,46 +89,44 @@ export default function LandingPage() {
 
   const handleTokenWillExpire = useCallback(
     async (uid: string): Promise<AgoraRenewalTokens> => {
-      if (!sessionData) {
-        throw new Error('Missing session data for token renewal')
-      }
+      try {
+        const channel = agoraData?.channel
+        if (!channel) {
+          throw new Error('Missing channel for token renewal')
+        }
 
-      const [rtcConfig, rtmConfig] = await Promise.all([
-        getConfig({ channel: sessionData.channel, uid }),
-        getConfig({ channel: sessionData.channel, uid: sessionData.uid }),
-      ])
+        // Python get_config issues RTM-capable tokens for the configured account,
+        // so renew RTM with the same UID used by the RTM client login.
+        const [rtcConfig, rtmConfig] = await Promise.all([
+          getConfig({ channel, uid }),
+          getConfig({ channel, uid: agoraData.uid }),
+        ])
 
-      return {
-        rtcToken: rtcConfig.token,
-        rtmToken: rtmConfig.token,
+        return {
+          rtcToken: rtcConfig.token,
+          rtmToken: rtmConfig.token,
+        }
+      } catch (error) {
+        console.error('Error renewing token:', error)
+        throw error
       }
     },
-    [sessionData],
+    [agoraData],
   )
 
   const handleEndConversation = async () => {
-    if (sessionData?.agentId) {
+    if (agoraData?.agentId) {
       try {
-        await stopAgent(sessionData.agentId)
+        await stopAgent(agoraData.agentId)
       } catch (nextError) {
         console.error('Failed to stop agent:', nextError)
       }
     }
 
-    if (rtmClient && sessionData) {
-      try {
-        await rtmClient.unsubscribe(sessionData.channel)
-      } catch {}
-      try {
-        await rtmClient.logout()
-      } catch (nextError) {
-        console.error('RTM logout error:', nextError)
-      }
-    }
-
+    rtmClient?.logout().catch((err) => console.error('RTM logout error:', err))
     setRtmClient(null)
-    setSessionData(null)
-    setAgentStartWarning(null)
+    setAgoraData(null)
+    setShowConversation(false)
   }
 
   return (
@@ -151,15 +149,17 @@ export default function LandingPage() {
             Talk to a voice agent now
           </h1>
 
-          {!sessionData ? (
-            <>
-              <p className='animate-fade-up animate-fade-up-d2 max-w-lg text-sm leading-relaxed text-muted-foreground sm:text-base'>
-                This Python + FastAPI quickstart streams real-time speech and a live transcript from
-                the ConvoAI engine—sub-second latency, production-style pipeline, and a FastAPI
-                service you can fork, extend, and ship from your own repo. No extra wiring to feel
-                the product.
-              </p>
+          {!showConversation && (
+            <p className='animate-fade-up animate-fade-up-d2 max-w-lg text-sm leading-relaxed text-muted-foreground sm:text-base'>
+              This Python + FastAPI quickstart streams real-time speech and a live transcript from
+              the ConvoAI engine—sub-second latency, production-style pipeline, and a FastAPI
+              service you can fork, extend, and ship from your own repo. No extra wiring to feel
+              the product.
+            </p>
+          )}
 
+          {!showConversation ? (
+            <>
               <Button
                 onClick={handleStartConversation}
                 disabled={isLoading}
@@ -183,18 +183,18 @@ export default function LandingPage() {
                 </p>
               ) : null}
             </>
-          ) : rtmClient ? (
+          ) : agoraData && rtmClient ? (
             <>
-              {agentStartWarning ? (
+              {agentJoinError ? (
                 <div className='mx-auto max-w-sm rounded-md bg-destructive/10 p-3 text-sm text-destructive'>
-                  {agentStartWarning}
+                  Failed to connect with AI agent. The conversation may not work as expected.
                 </div>
               ) : null}
               <Suspense fallback={<LoadingSkeleton />}>
-                <ErrorBoundary fallback={<LoadingSkeleton />}>
+                <ErrorBoundary>
                   <AgoraProvider>
                     <ConversationComponent
-                      sessionData={sessionData}
+                      agoraData={agoraData}
                       rtmClient={rtmClient}
                       onTokenWillExpire={handleTokenWillExpire}
                       onEndConversation={handleEndConversation}

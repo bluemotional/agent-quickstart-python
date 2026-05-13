@@ -6,22 +6,45 @@ Agora Conversational AI Agent service built with FastAPI.
 
 Use the repo-root [README.md](../README.md) for the normal full-stack local flow. This document is for working on the Python backend module directly.
 
-Follow [Get started with Agora](https://docs.agora.io/en/conversational-ai/get-started/manage-agora-account#enable-conversational-ai) to get the **App ID** and **App Certificate** and enable the **Conversational AI** service.
+Recommended from the repo root.
+
+Repo setup:
+
+```bash
+bun run setup
+```
+
+Agora credentials:
+
+```bash
+agora project env write server-python/.env.local
+```
+
+Run the app:
+
+```bash
+bun run dev
+```
+
+This assumes the Agora CLI is installed and logged in. The command uses the project selected in your Agora CLI context, which is usually your default account project.
+
+If you are not using the Agora CLI, create the env file manually and fill in your project values:
+
+```bash
+cp server-python/.env.example server-python/.env.local
+```
 
 From `server-python/`:
 
 ### 1. Configure Environment
 
-Preferred:
+Backend-only Agora CLI env write:
 
 ```bash
-agora login
-agora project create my-first-voice-agent --feature rtc --feature convoai
-agora project use my-first-voice-agent
-agora project env write .env.local --with-secrets
+agora project env write .env.local
 ```
 
-Reference fallback:
+Manual fallback:
 
 ```bash
 cp .env.example .env.local
@@ -31,6 +54,27 @@ cp .env.example .env.local
 - `AGORA_APP_ID` - Your Agora App ID (Required)
 - `AGORA_APP_CERTIFICATE` - Your Agora App Certificate (Required)
 - Agora managed provider access should be enabled for this project
+
+If you still need to authenticate with the CLI:
+
+```bash
+agora login
+```
+
+To select a specific existing project before writing env values:
+
+```bash
+agora project use <project-id-or-name>
+agora project env write .env.local
+```
+
+To create a new project instead of using your default project:
+
+```bash
+agora project create my-first-voice-agent --feature rtc --feature convoai
+agora project use my-first-voice-agent
+agora project env write .env.local
+```
 
 **Note**: The service uses Token007 authentication generated from `AGORA_APP_ID` and `AGORA_APP_CERTIFICATE`. Third-party vendor keys are not required in this default managed setup. The current default chain matches the Next.js quickstart: `DeepgramSTT` (`nova-3`) + `OpenAI` (`gpt-4o-mini`) + `MiniMaxTTS` (`speech_2_6_turbo` / `English_captivating_female1`). The FastAPI sample now uses `AsyncAgora` so the request path matches the local Agora guidance for async frameworks.
 

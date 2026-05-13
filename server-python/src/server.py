@@ -108,7 +108,8 @@ async def get_config(
         )
 
     try:
-        user_uid = uid or random.randint(1000, 9999999)
+        # uid may be 0 (Next.js parity for RTM renewal); only substitute when the query param is absent.
+        user_uid = random.randint(1000, 9999999) if uid is None else uid
         agent_uid = str(random.randint(10000000, 99999999))
         channel_name = channel or _generate_channel_name()
 
