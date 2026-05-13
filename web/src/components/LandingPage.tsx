@@ -7,6 +7,7 @@ import type { RTMClient } from 'agora-rtm'
 
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { LoadingSkeleton } from '@/components/LoadingSkeleton'
+import { ShareButton } from '@/components/share-button'
 import { Button } from '@/components/ui/button'
 import { getConfig, startAgent, stopAgent } from '@/services/api'
 import type { AgoraRenewalTokens, AgoraTokenData } from '@/types/conversation'
@@ -141,6 +142,10 @@ export default function LandingPage() {
       />
 
       <div className='relative z-10 flex min-h-screen flex-col items-center justify-center px-4 py-12'>
+        <div className='absolute right-4 top-4'>
+          <ShareButton />
+        </div>
+
         <section className='flex w-full max-w-lg flex-col items-center gap-5 px-4 text-center'>
           <p className='animate-fade-up text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground'>
             Agora Conversational AI
