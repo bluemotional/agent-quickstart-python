@@ -142,7 +142,7 @@ export default function LandingPage() {
       />
 
       <div className='relative z-10 flex min-h-screen flex-col items-center justify-center px-4 py-12'>
-        <div className='absolute right-4 top-4'>
+        <div className='absolute left-4 top-4'>
           <ShareButton />
         </div>
 
