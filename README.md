@@ -29,7 +29,7 @@ curl -fsSL https://raw.githubusercontent.com/AgoraIO/cli/main/install.sh | sh -s
 agora login
 agora init my-python-demo --template python
 cd my-python-demo
-bun install
+bun setup
 bun run dev
 ```
 
@@ -116,16 +116,16 @@ bun run clean        # Clean build artifacts and venvs
 
 ## Troubleshooting
 
-| Problem                                  | Check                                                                                                                                                           |
-| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Connection issues                        | Backend running on port 8000?                                                                                                                                   |
-| Agora credentials not written yet        | Run `agora project env write server/.env.local`.                                                                                                                |
-| Auth errors                              | Run `agora project doctor --deep` and confirm `AGORA_APP_ID` and `AGORA_APP_CERTIFICATE` are present in `server/.env.local`.                                    |
-| Agent fails to start                     | Run `agora project doctor --deep`, then check logs at http://localhost:8000/docs.                                                                               |
-| Frontend can't reach backend             | If running local Python mode, confirm `AGENT_BACKEND_URL=http://localhost:8000` is set via the root frontend scripts                                            |
-| `bun install` did not update the web app | Run it from the repo root; this repo uses a Bun workspace rooted here                                                                                           |
-| Deployed web app returns API auth errors | Confirm `AGORA_APP_ID` and `AGORA_APP_CERTIFICATE` are set in the deployment target and `AGENT_BACKEND_URL` is not pointing to localhost                        |
-| Unsure which service owns `/api/*`       | Local dev: Next route handlers proxy to FastAPI. Deployment: Next route handlers handle requests directly unless `AGENT_BACKEND_URL` is set                     |
+| Problem                                  | Check                                                                                                                                       |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Connection issues                        | Backend running on port 8000?                                                                                                               |
+| Agora credentials not written yet        | Run `agora project env write server/.env.local`.                                                                                            |
+| Auth errors                              | Run `agora project doctor --deep` and confirm `AGORA_APP_ID` and `AGORA_APP_CERTIFICATE` are present in `server/.env.local`.                |
+| Agent fails to start                     | Run `agora project doctor --deep`, then check logs at http://localhost:8000/docs.                                                           |
+| Frontend can't reach backend             | If running local Python mode, confirm `AGENT_BACKEND_URL=http://localhost:8000` is set via the root frontend scripts                        |
+| `bun install` did not update the web app | Run it from the repo root; this repo uses a Bun workspace rooted here                                                                       |
+| Deployed web app returns API auth errors | Confirm `AGORA_APP_ID` and `AGORA_APP_CERTIFICATE` are set in the deployment target and `AGENT_BACKEND_URL` is not pointing to localhost    |
+| Unsure which service owns `/api/*`       | Local dev: Next route handlers proxy to FastAPI. Deployment: Next route handlers handle requests directly unless `AGENT_BACKEND_URL` is set |
 
 ## Verification
 
