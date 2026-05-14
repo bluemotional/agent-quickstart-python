@@ -1,9 +1,6 @@
 # Agora Conversational AI Web Demo
 
-Real-time voice conversation with AI agents, featuring the Agora UIKit transcript experience with two supported runtime modes:
-
-- local Python-backed development
-- single-target web deployment
+Real-time voice conversation with AI agents, featuring the Agora UIKit transcript experience. The Next.js web app owns the browser UI, while the Python FastAPI service owns token generation and agent lifecycle APIs.
 
 ## Architecture
 
@@ -55,25 +52,29 @@ Services will be available at:
 - Backend: http://localhost:8000
 - API Docs: http://localhost:8000/docs
 
-In local development, the browser still calls `/api/*` on the Next app. Those route handlers proxy to the FastAPI backend through `AGENT_BACKEND_URL=http://localhost:8000`, which the root scripts set automatically.
+The browser calls `/api/*` on the Next app. Next rewrites those requests to the FastAPI backend through `AGENT_BACKEND_URL=http://localhost:8000`, which the root scripts set automatically.
 
 ## Deployment Env
 
-Deploy `web` as a Next.js app. In this mode, the Next route handlers serve these endpoints directly:
+Deploy `web` as a Next.js app alongside a reachable Python FastAPI service. Next rewrites these browser-facing endpoints to the Python backend:
 
 - `/api/get_config`
-- `/api/v2/startAgent`
-- `/api/v2/stopAgent`
+- `/api/startAgent`
+- `/api/stopAgent`
 
-Set these env vars in the deployment target:
+Set this env var in the web deployment target:
+
+```bash
+AGENT_BACKEND_URL=https://your-python-backend.example.com
+```
+
+Set Agora credentials on the Python backend:
 
 ```bash
 AGORA_APP_ID=your_agora_app_id
 AGORA_APP_CERTIFICATE=your_agora_app_certificate
 AGENT_GREETING=optional_custom_greeting
 ```
-
-Do not set `AGENT_BACKEND_URL` in deployment unless you intentionally want the web app to proxy to an external Python service.
 
 Authentication uses Token007 (AccessToken2), generated automatically from `AGORA_APP_ID` and `AGORA_APP_CERTIFICATE`. Vendor credentials are no longer required in local setup; the backend defaults to the same DeepgramSTT + OpenAI + MiniMaxTTS managed configuration used by the current Next.js quickstart.
 
@@ -96,7 +97,7 @@ bun run doctor:local # Local Python-backed checks, including required env values
 bun run backend      # Backend only (port 8000)
 bun run frontend     # Frontend only (port 3000)
 bun run build        # Build frontend for production
-bun run verify       # Verify the single-target web deployment path
+bun run verify       # Verify the web proxy contract and web build
 bun run verify:local # Verify backend compile + FastAPI app proxy smoke with the real route layer + web build
 bun run verify:web   # Run web route contract checks + web build
 bun run verify:local:fastapi # Smoke-test Next -> FastAPI app for get_config/start/stop
@@ -122,10 +123,10 @@ bun run clean        # Clean build artifacts and venvs
 | Agora credentials not written yet        | Run `agora project env write server/.env.local`.                                                                                            |
 | Auth errors                              | Run `agora project doctor --deep` and confirm `AGORA_APP_ID` and `AGORA_APP_CERTIFICATE` are present in `server/.env.local`.                |
 | Agent fails to start                     | Run `agora project doctor --deep`, then check logs at http://localhost:8000/docs.                                                           |
-| Frontend can't reach backend             | If running local Python mode, confirm `AGENT_BACKEND_URL=http://localhost:8000` is set via the root frontend scripts                        |
+| Frontend can't reach backend             | Confirm `AGENT_BACKEND_URL=http://localhost:8000` is set via the root frontend scripts or deployment target                                  |
 | `bun install` did not update the web app | Run it from the repo root; this repo uses a Bun workspace rooted here                                                                       |
-| Deployed web app returns API auth errors | Confirm `AGORA_APP_ID` and `AGORA_APP_CERTIFICATE` are set in the deployment target and `AGENT_BACKEND_URL` is not pointing to localhost    |
-| Unsure which service owns `/api/*`       | Local dev: Next route handlers proxy to FastAPI. Deployment: Next route handlers handle requests directly unless `AGENT_BACKEND_URL` is set |
+| Deployed web app returns API auth errors | Confirm `AGORA_APP_ID` and `AGORA_APP_CERTIFICATE` are set on the Python backend and `AGENT_BACKEND_URL` is not pointing to localhost       |
+| Unsure which service owns `/api/*`       | Next owns the browser-facing `/api/*` URLs; FastAPI owns the actual `/get_config`, `/startAgent`, and `/stopAgent` implementations          |
 
 ## Verification
 
