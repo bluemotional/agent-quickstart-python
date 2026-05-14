@@ -1,25 +1,23 @@
-import type { RTMClient } from 'agora-rtm'
+import type { RTMClient } from 'agora-rtm';
 
 /** Session bootstrap from GET /api/get_config (channel + tokens + agent identity). */
 export interface AgoraTokenData {
-  token: string
-  uid: string
-  channel: string
-  agentId?: string
-  /** Echoed from config for RTC when `NEXT_PUBLIC_AGORA_APP_ID` is not set. */
-  appId?: string
-  /** Agent RTC uid from config; component also respects `NEXT_PUBLIC_AGENT_UID`. */
-  agentUid?: string
+  token: string;
+  uid: string;
+  channel: string;
+  agentId?: string;
+  appId?: string; // `app_id` returned by backend
+  agentUid?: string; // `NEXT_PUBLIC_AGENT_UID`
 }
 
 export interface AgoraRenewalTokens {
-  rtcToken: string
-  rtmToken: string
+  rtcToken: string;
+  rtmToken: string;
 }
 
 export interface ConversationComponentProps {
-  agoraData: AgoraTokenData
-  rtmClient: RTMClient
-  onTokenWillExpire: (uid: string) => Promise<AgoraRenewalTokens>
-  onEndConversation: () => void
+  agoraData: AgoraTokenData;
+  rtmClient: RTMClient;
+  onTokenWillExpire: (uid: string) => Promise<AgoraRenewalTokens>;
+  onEndConversation: () => void;
 }

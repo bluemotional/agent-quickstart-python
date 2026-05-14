@@ -141,7 +141,7 @@ export default function ConversationComponent({
 		};
 	}, []);
 
-	const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID ?? agoraData.appId ?? "";
+	const appId = agoraData.appId ?? "";
 
 	const { isConnected: joinSuccess } = useJoin(
 		{

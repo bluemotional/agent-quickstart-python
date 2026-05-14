@@ -19,6 +19,43 @@ const ConversationComponent = dynamic(
 	},
 );
 
+function waitForRtmConnected(rtmClient: RTMClient, timeoutMs = 600): Promise<void> {
+	return new Promise((resolve) => {
+		let settled = false;
+		let timer: ReturnType<typeof setTimeout> | null = null;
+
+		const finish = () => {
+			if (settled) return;
+			settled = true;
+			if (timer) clearTimeout(timer);
+			rtmClient.removeEventListener("status", onStatus);
+			resolve();
+		};
+
+		const onStatus = (
+			connectionStatus:
+				| { newState?: string }
+				| { state?: string }
+				| Record<string, unknown>,
+		) => {
+			const nextState =
+				typeof connectionStatus === "object" && connectionStatus !== null
+					? "newState" in connectionStatus
+						? connectionStatus.newState
+						: "state" in connectionStatus
+							? connectionStatus.state
+							: undefined
+					: undefined;
+			if (nextState === "CONNECTED") {
+				finish();
+			}
+		};
+
+		rtmClient.addEventListener("status", onStatus);
+		timer = setTimeout(finish, timeoutMs);
+	});
+}
+
 const AgoraProvider = dynamic(
 	async () => {
 		const { AgoraRTCProvider, default: AgoraRTC } = await import(
@@ -69,7 +106,7 @@ export default function LandingPage() {
 
 		try {
 			const config = await getConfig();
-			const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID ?? config.app_id;
+			const appId = config.app_id;
 
 			const [agentIdResult, rtm] = await Promise.all([
 				startAgent(
@@ -85,6 +122,7 @@ export default function LandingPage() {
 					const { default: AgoraRTM } = await import("agora-rtm");
 					const nextRtm: RTMClient = new AgoraRTM.RTM(appId, config.uid);
 					await nextRtm.login({ token: config.token });
+					await waitForRtmConnected(nextRtm);
 					await nextRtm.subscribe(config.channel_name);
 					return nextRtm;
 				})(),
