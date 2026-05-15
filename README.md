@@ -160,8 +160,8 @@ The browser talks to Next.js `/api/*` routes. In local mode, Next rewrites those
 
 - [ARCHITECTURE.md](./ARCHITECTURE.md)
 - [AGENTS.md](./AGENTS.md)
-- [web/ARCHITECTURE.md](./web/ARCHITECTURE.md)
-- [server/ARCHITECTURE.md](./server/ARCHITECTURE.md)
+- [docs/ai/L1/02_architecture.md](./docs/ai/L1/02_architecture.md) — full-stack topology and lifecycle
+- [docs/ai/L1/03_code_map.md](./docs/ai/L1/03_code_map.md) — curated `web/` + `server/` file map
 
 ## License
 
