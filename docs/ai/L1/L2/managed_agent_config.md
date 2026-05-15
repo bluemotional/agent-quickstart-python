@@ -8,46 +8,63 @@ All managed agent configuration is in `server/src/agent.py`. The browser sends `
 
 ## The Agent Builder Chain
 
+`AsyncAgora` is constructed once at `Agent.__init__` time and held as `self.client`. All provider options (`turn_detection`, `advanced_features`, `parameters`) live on `AgoraAgent`, not on `create_async_session`.
+
 ```python
-from agora_agent.agentkit import AsyncAgora, AgoraAgent
+from agora_agent import Area, AsyncAgora
+from agora_agent.agentkit import Agent as AgoraAgent
 from agora_agent.agentkit.vendors import OpenAI, DeepgramSTT, MiniMaxTTS
 
-async def start(self, channel_name: str, rtc_uid: int, user_uid: int):
-    agora = AsyncAgora(
-        app_id=os.environ["AGORA_APP_ID"],
-        app_certificate=os.environ["AGORA_APP_CERTIFICATE"],
-    )
-    agent = (
-        AgoraAgent(agora=agora,
-                   instructions=ADA_PROMPT,
-                   greeting=os.environ.get("AGENT_GREETING") or DEFAULT_GREETING,
-                   failure_message="Please wait a moment.")
-        .with_stt(DeepgramSTT(model="nova-3", language="en"))
-        .with_llm(OpenAI(model="gpt-4o-mini"))
-        .with_tts(MiniMaxTTS(model="speech_2_6_turbo",
-                              voice_id="English_captivating_female1"))
-    )
+# --- at __init__ time ---
+self.client = AsyncAgora(
+    area=Area.US,
+    app_id=self.app_id,
+    app_certificate=self.app_certificate,
+)
 
-    session = await agent.create_async_session(
-        channel_name=channel_name,
-        remote_uids=[str(user_uid)],
-        enable_string_uid=False,
-        idle_timeout=30,
-        expires_in=3600,
-        data_channel="rtm",
-        advanced_features={"enable_rtm": True, "enable_tools": True},
-        parameters={
-            "data_channel": "rtm",
-            "enable_error_message": True,
-            "enable_metrics": True,
+# --- at start() time ---
+agora_agent = AgoraAgent(
+    name=f"agent_{channel_name}_{agent_uid}_{int(time.time())}",
+    instructions=ADA_PROMPT,
+    greeting=self.greeting,
+    failure_message="Please wait a moment.",
+    max_history=50,
+    turn_detection={
+        "config": {
+            "speech_threshold": 0.5,
+            "start_of_speech": { /* VAD on-start params */ },
+            "end_of_speech":   { /* VAD on-end params */ },
         },
-        turn_detection={
-            "start": {"type": "vad", ...},
-            "end":   {"type": "vad", ...},
-        },
-    )
-    await session.start()
-    return session.agent_id, session.status
+    },
+    advanced_features={"enable_rtm": True, "enable_tools": True},
+    parameters={
+        "data_channel": "rtm",
+        "enable_error_message": True,
+        "enable_metrics": True,
+    },
+).with_stt(DeepgramSTT(model="nova-3", language="en")
+).with_llm(OpenAI(
+    model="gpt-4o-mini",
+    greeting_message=self.greeting,
+    failure_message="Please wait a moment.",
+    max_history=15,
+    max_tokens=1024,
+    temperature=0.7,
+    top_p=0.95,
+)).with_tts(MiniMaxTTS(model="speech_2_6_turbo", voice_id="English_captivating_female1"))
+
+# create_async_session is synchronous; start() is async
+session = agora_agent.create_async_session(
+    client=self.client,
+    channel=channel_name,
+    agent_uid=str(agent_uid),
+    remote_uids=[str(user_uid)],
+    enable_string_uid=False,
+    idle_timeout=30,
+    expires_in=3600,
+)
+agent_id = await session.start()
+return {"agent_id": agent_id, "channel_name": channel_name, "status": "started"}
 ```
 
 The exact field names track `agora-agent-server-sdk`. The requirement is unpinned in `server/requirements.txt`, so re-verify field names after upgrades.
@@ -64,12 +81,12 @@ Set `AGENT_GREETING` in `server/.env.local`, or change `DEFAULT_GREETING` in `ag
 
 ### Change VAD
 
-Edit the `turn_detection` dict. Tuning notes:
+Edit the `turn_detection` dict on `AgoraAgent`. The shape uses a `"config"` wrapper key with nested `start_of_speech` and `end_of_speech` blocks — do **not** use the deprecated flat `"start"`/`"end"` keys. Tuning notes:
 
-- VAD `speech_threshold` — activation sensitivity (0.0–1.0). Lower values trigger on quieter audio.
-- VAD `interrupt_duration_ms` — minimum user speech before the agent yields. Lower = more responsive interruptions.
-- VAD `prefix_padding_ms` — audio captured before VAD triggers; raise if early phonemes are clipped.
-- VAD `silence_duration_ms` — silence after speech before VAD ends the turn. Raise for slow speakers.
+- `speech_threshold` — VAD activation sensitivity (0.0–1.0). Lower values trigger on quieter audio.
+- `interrupt_duration_ms` — minimum user speech before the agent yields. Lower = more responsive interruptions.
+- `prefix_padding_ms` — audio captured before VAD triggers; raise if early phonemes are clipped.
+- `silence_duration_ms` — silence after speech before VAD ends the turn. Raise for slow speakers.
 
 ### Swap STT / LLM / TTS
 
@@ -87,8 +104,10 @@ For a BYOK provider, document the new env var in `server/.env.example`.
 
 - `idle_timeout` (seconds) — drop to 15 for short demos.
 - `expires_in` (seconds) — keep aligned with `token_expire` in `get_config`.
+- `agent_uid` — the UID the agent occupies in the channel; must match the value the browser expects.
 - `enable_string_uid` — `False` keeps UIDs numeric for both RTC and RTM. Flipping to `True` requires matching changes in the browser join path.
-- `data_channel` — `"rtm"` keeps transcripts and metrics flowing on RTM. `"sct"` is the alternative; the toolkit on the client side must match.
+
+`data_channel`, `enable_error_message`, and `enable_metrics` are session-level parameters but live in the `parameters=` dict on `AgoraAgent`, not in `create_async_session`.
 
 ## Async Lifetime
 
@@ -107,12 +126,14 @@ Do not hold per-request state on `Agent`. If you need correlation, use the retur
   "data": {
     "agent_id": "string",
     "channel_name": "string",
-    "status": "running"
+    "status": "started"
   }
 }
 ```
 
 The client stores `agent_id` in `agoraData` and later passes it to `/api/stopAgent`.
+
+Stop is idempotent: `Agent.stop` tries `session.stop()` on the in-memory session first, and falls back to `self.client.stop_agent(agent_id)` if the session is stale or already gone. Both paths succeed without error.
 
 ## Verification
 
