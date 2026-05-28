@@ -39,7 +39,7 @@
 
 ```ts
 async rewrites() {
-  const backendUrl = (process.env.AGENT_BACKEND_URL ?? '').trim();
+  const backendUrl = process.env.AGENT_BACKEND_URL?.replace(/\/$/, '');
   if (!backendUrl) return [];
   return [
     { source: '/api/get_config',  destination: `${backendUrl}/get_config` },

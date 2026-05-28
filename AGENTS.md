@@ -7,8 +7,9 @@ This guide is for coding agents making changes in `agent-quickstart-python`.
 This repository uses progressive disclosure documentation. Docs live under `docs/ai/` in three levels.
 
 1. Read [docs/ai/L0_repo_card.md](docs/ai/L0_repo_card.md) to identify the repo.
-2. Load ALL 8 files in [docs/ai/L1/](docs/ai/L1/). They are small — load all upfront.
-3. Follow L2 deep-dive links only when L1 isn't detailed enough. The index is at [docs/ai/L1/L2/_index.md](docs/ai/L1/L2/_index.md).
+2. This repo declares `Recipe Role: base`; read [docs/ai/RECIPE.md](docs/ai/RECIPE.md) before changing reusable quickstart contracts.
+3. Load ALL 8 files in [docs/ai/L1/](docs/ai/L1/). They are small — load all upfront.
+4. Follow L2 deep-dive links only when L1 isn't detailed enough. The index is at [docs/ai/L1/L2/_index.md](docs/ai/L1/L2/_index.md).
 
 The sections below (Start Here, Patterns, Anti-Patterns, etc.) remain the canonical contributor handbook for hands-on work; the `docs/ai/` tree is the structured summary used by AI agents.
 
@@ -170,5 +171,6 @@ Before finishing a change:
 | generate docs   | No `docs/ai/` directory exists yet                           |
 | update docs     | Code changed since the `Last Reviewed` date in L0            |
 | test docs       | Verify docs give agents the right context (writes `docs/ai/test-results.md`) |
+| fix docs        | Close findings from a docs review or test run                |
 
 The generator and tester live in the [AgoraIO-Community/ai-devkit](https://github.com/AgoraIO-Community/ai-devkit) skill set. See the [progressive disclosure standard](https://github.com/AgoraIO-Community/ai-devkit/blob/main/docs/progressive-disclosure-standard.md) for the full specification.

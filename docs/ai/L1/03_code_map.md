@@ -100,4 +100,5 @@ server/                   # Python FastAPI backend
 
 ## Related Deep Dives
 
+- [From-Scratch Bootstrap](L2/from_scratch_bootstrap.md) — Baseline map for recreating the Python-backed quickstart recipe.
 - [Session Lifecycle](L2/session_lifecycle.md) — Concrete walk through `LandingPage` + `ConversationComponent`.

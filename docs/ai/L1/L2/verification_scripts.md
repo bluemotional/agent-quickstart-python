@@ -62,12 +62,11 @@ This is the closest CI gets to a full integration test. It never makes outbound 
 
 ## `py_compile` Verification
 
-`bun run verify:backend` runs `python3 -m py_compile server/src/server.py server/src/agent.py …`. It catches:
+`bun run verify:backend` runs `python3 -m py_compile server/src/server.py server/src/agent.py`. It catches:
 
 - Syntax errors.
-- Import errors (because `py_compile` imports the module).
 
-It does **not** catch logic regressions. Pair it with `verify:local:fastapi` whenever you change route behavior.
+It does **not** execute module imports, load env, or catch logic regressions. Pair it with `verify:local:fastapi` whenever you change route behavior.
 
 ## Adding a New Route — Checklist
 

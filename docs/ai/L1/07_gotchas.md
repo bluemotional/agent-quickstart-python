@@ -4,7 +4,7 @@
 
 ## `AGENT_BACKEND_URL` Is Mandatory for the Web Client
 
-`web/next.config.ts` only registers `/api/*` rewrites when `AGENT_BACKEND_URL` is a non-empty trimmed string. If it is unset:
+`web/next.config.ts` only registers `/api/*` rewrites when `AGENT_BACKEND_URL` is set, after removing one trailing slash. If it is unset:
 
 - `web/scripts/doctor.ts` exits with an error.
 - `bun run dev` for the web alone returns 404 on every `/api/*` call.

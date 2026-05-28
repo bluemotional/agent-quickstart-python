@@ -14,7 +14,7 @@ User clicks "Start"
    ▼
 LandingPage.tsx
    │
-   ├─▶ getConfig()                       (POST /api/get_config → GET /get_config)
+   ├─▶ getConfig()                       (GET /api/get_config → GET /get_config)
    │     ◀── data: { app_id, token, uid, channel_name, agent_uid }
    │
    ├─▶ startAgent(channel_name, agent_uid, uid)    (POST /api/startAgent)
@@ -68,8 +68,8 @@ RTC fires `token-privilege-will-expire` ~30 seconds before expiry. `Conversation
 async function handleTokenWillExpire(joinedUid: UID) {
   if (!joinedUid) return; // skip if RTC never reported a uid
   const [rtcConfig, rtmConfig] = await Promise.all([
-    getConfig(agoraData.channel, joinedUid),
-    getConfig(agoraData.channel, agoraData.uid),
+    getConfig({ channel, uid: joinedUid }),
+    getConfig({ channel, uid: agoraData.uid }),
   ]);
   await client.renewToken(rtcConfig.token);
   await rtmClient.renewToken(rtmConfig.token);

@@ -74,6 +74,14 @@ If you change runtime behavior, also update:
 - Repo-root `ARCHITECTURE.md` and `AGENTS.md`
 - The relevant file in `docs/ai/L1/` (often `02_architecture.md` and `03_code_map.md`) and `Last Reviewed` in `docs/ai/L0_repo_card.md`
 
+## Implement a Baseline Recipe Repo
+
+1. Treat this repo as the Python-backed Agora quickstart baseline.
+2. Do not recreate Agora ConvoAI integration from memory.
+3. Follow [from_scratch_bootstrap.md](L2/from_scratch_bootstrap.md) for the implementation map and checklist.
+4. Preserve the recipe invariants in `docs/ai/RECIPE.md`.
+5. Run the verification commands before publishing a derivative.
+
 ## Roll Back a Bad Deploy
 
 - **Web:** redeploy the previous Next build on the host platform.
@@ -81,5 +89,6 @@ If you change runtime behavior, also update:
 
 ## Related Deep Dives
 
+- [From-Scratch Bootstrap](L2/from_scratch_bootstrap.md) — Baseline implementation checklist for recipe consumers.
 - [Managed Agent Config](L2/managed_agent_config.md) — Every tunable field on the agent.
 - [Session Lifecycle](L2/session_lifecycle.md) — Renewal sequence in detail.
