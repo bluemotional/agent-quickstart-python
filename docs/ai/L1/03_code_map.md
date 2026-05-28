@@ -55,7 +55,7 @@ web/                      # Next.js 16 app (workspace member)
   docs/                   # Workflow + review + project state templates
 
 server/                   # Python FastAPI backend
-  requirements.txt        # fastapi, uvicorn, requests, dotenv, agora-agent-server-sdk
+  requirements.txt        # fastapi, uvicorn, requests, dotenv, agora-agents
   .env.example
   README.md
   src/
@@ -100,4 +100,5 @@ server/                   # Python FastAPI backend
 
 ## Related Deep Dives
 
+- [From-Scratch Bootstrap](L2/from_scratch_bootstrap.md) — Baseline map for recreating the Python-backed quickstart recipe.
 - [Session Lifecycle](L2/session_lifecycle.md) — Concrete walk through `LandingPage` + `ConversationComponent`.

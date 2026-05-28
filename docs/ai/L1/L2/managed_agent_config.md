@@ -67,7 +67,7 @@ agent_id = await session.start()
 return {"agent_id": agent_id, "channel_name": channel_name, "status": "started"}
 ```
 
-The exact field names track `agora-agent-server-sdk`. The requirement is unpinned in `server/requirements.txt`, so re-verify field names after upgrades.
+The exact field names track `agora-agents`. The requirement is unpinned in `server/requirements.txt`, so re-verify field names after upgrades.
 
 ## Editing Each Surface
 
@@ -77,7 +77,7 @@ Edit the `ADA_PROMPT` string constant at the top of `agent.py`. Keep it concise 
 
 ### Change the greeting
 
-Set `AGENT_GREETING` in `server/.env.local`, or change `DEFAULT_GREETING` in `agent.py`.
+Set `AGENT_GREETING` in `server/.env.local`, or change the inline fallback string in `Agent.__init__`.
 
 ### Change VAD
 

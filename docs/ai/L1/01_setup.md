@@ -23,10 +23,10 @@ Or use the orchestrated flow:
 
 ```bash
 bun run setup
-# runs: setup:env → setup:deps → setup:backend → setup:frontend → setup:done
+# runs: setup:env → setup:backend → setup:frontend → setup:done
 ```
 
-`setup:env` copies `server/.env.example` → `server/.env.local` if missing. `setup:backend` recreates `server/venv`, upgrades pip, and installs `requirements.txt`. `setup:frontend` runs `bun install`.
+`setup:env` copies `server/.env.example` → `server/.env.local` if missing. `setup:backend` recreates `server/venv`, upgrades pip, and installs `requirements.txt`. `setup:frontend` runs `bun install`. `setup:deps` exists for `bun run dev:check`, not for `bun run setup`.
 
 > The package.json scripts use `server/venv/` (no leading dot). `bun run dev:backend` activates `server/venv` and runs `python src/server.py` from inside `server/`. If you create the venv under a different name you'll need to adjust the scripts or symlink.
 
@@ -66,10 +66,10 @@ fastapi>=0.100.0
 uvicorn>=0.20.0
 requests>=2.31.0
 python-dotenv>=1.0.0
-agora-agent-server-sdk
+agora-agents>=2.0.0
 ```
 
-The SDK pin is intentionally open — pin if you need reproducibility.
+The SDK is lower-bounded at v2 — add an upper bound or exact pin if you need reproducible SDK behavior.
 
 ## Quick Commands
 

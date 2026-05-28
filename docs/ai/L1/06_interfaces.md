@@ -113,4 +113,4 @@ agent_id = await session.start()
 ## Related Deep Dives
 
 - [Managed Agent Config](L2/managed_agent_config.md) — Detailed field reference.
-- [Verification Scripts](L2/verification_scripts.md) — How the contracts above are enforced in CI.
+- [Verification Scripts](L2/verification_scripts.md) — How the contracts above are enforced by local pre-ship checks.
