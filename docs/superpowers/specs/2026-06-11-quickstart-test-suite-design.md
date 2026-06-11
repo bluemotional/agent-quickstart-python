@@ -84,11 +84,21 @@ Two jobs on `push` + `pull_request`:
 
 ## Doc update (Python floor 3.8 → 3.10)
 
-Update the README prerequisite `Python 3.8+` → `Python 3.10+`, and add a one-line tests note (`pytest` in `server/`, `bun test` in `web/`; CI on Linux/macOS/Windows × Python 3.10 & 3.13). Check `server/README.md`, `AGENTS.md`, and `docs/ai/` for any other `3.8` mention and bump them too. `requirements.txt` pins are unchanged.
+Bump **all six** `3.8` mentions to `3.10`, across four files (verified by grep):
+- `README.md:4` — the badge `python-%3E%3D3.8` → `python-%3E%3D3.10`
+- `README.md:11` — `Python 3.8+` → `Python 3.10+`
+- `server/README.md:139` — `Python >= 3.8` → `Python >= 3.10`
+- `docs/ai/L0_repo_card.md:11` — `Python 3.8+ (FastAPI ...)` → `Python 3.10+ (...)`
+- `docs/ai/L1/01_setup.md:7` — `Python ≥ 3.8` → `Python ≥ 3.10`
+- `docs/ai/L1/01_setup.md:109` — `install Python ≥ 3.8` → `install Python ≥ 3.10`
+
+Because this touches `docs/ai/`, **bump `Last Reviewed` in `docs/ai/L0_repo_card.md`** (`2026-05-28` → `2026-06-11`), per the AGENTS.md convention (line 141). Add the one-line tests note to `README.md` (`pytest` in `server/`, `bun test` in `web/`; CI on Linux/macOS/Windows × Python 3.10 & 3.13). `AGENTS.md` has **no** `3.8` mention (nothing to change there). `requirements.txt` pins are unchanged.
+
+**Explicitly out of scope (decision A):** no prose rewrite of `docs/ai/L1/05_workflows.md` or `01_setup.md` to add test-command/CI sections. The test suite is additive and changes no documented contract; a fuller `docs/ai/` refresh is a separate "update docs" pass.
 
 ## Testing / Verification (of this work)
 
-- `cd server && pip install -r requirements.txt -r requirements-dev.txt && pytest tests` passes.
+- **No venv exists yet** (the quickstart hasn't been `bun run setup`). The local test run must first create one: `cd server && python3 -m venv venv && venv/bin/python -m pip install -r requirements.txt -r requirements-dev.txt`, then `venv/bin/python -m pytest tests`. Passes.
 - `cd web && bun install && bun test` passes.
 - The existing `bun run verify:*` scripts still pass (no regression).
 - CI green across the matrix on the PR.
