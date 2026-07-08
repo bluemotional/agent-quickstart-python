@@ -14,10 +14,16 @@ import time
 from typing import Any, Dict, Optional
 from dotenv import load_dotenv
 
-# Load environment variables from .env.local or .env
 _base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-load_dotenv(os.path.join(_base_dir, '.env.local'), override=True)
-load_dotenv(os.path.join(_base_dir, '.env'), override=True)
+
+
+def _load_environment(base_dir: str = _base_dir) -> None:
+    """Load local overrides without clobbering explicit process env vars."""
+    load_dotenv(os.path.join(base_dir, ".env.local"))
+    load_dotenv(os.path.join(base_dir, ".env"))
+
+
+_load_environment()
 
 from fastapi import APIRouter, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -91,6 +97,22 @@ class StopAgentRequest(BaseModel):
 
 
 # API endpoints
+@router.get("/health")
+async def health_check():
+    """Health check used by Railway and other deployment targets."""
+    if agent is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Service not properly configured. Please check environment variables.",
+        )
+
+    return {
+        "code": 0,
+        "msg": "success",
+        "data": {"status": "ok"},
+    }
+
+
 def _generate_channel_name() -> str:
     return f"ai-conversation-{int(time.time())}-{random.randint(1000, 9999)}"
 

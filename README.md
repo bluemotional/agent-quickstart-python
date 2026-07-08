@@ -1,8 +1,14 @@
-# Agora Conversational AI Python Quickstart
+# Realtime Voice Agent
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Python](https://img.shields.io/badge/python-%3E%3D3.10-blue)](https://www.python.org/)
 [![Bun](https://img.shields.io/badge/bun-latest-black)](https://bun.sh/)
+
+Built with Agora, Python, and Next.js.
+
+Bring your own Agora credentials.
+
+Deploy on Railway.
 
 Build a production-style voice agent with a Next.js web client and Python FastAPI backend. This quickstart includes live transcript, agent visualizer ([Agent UIKit](https://agoraio-conversational-ai.github.io/agent-uikit/)), and managed STT/LLM/TTS defaults.
 
@@ -41,7 +47,7 @@ If the agent does not join or transcripts do not appear, run **`agora project do
 Use this path if you already cloned **this** repo:
 
 ```bash
-git clone https://github.com/AgoraIO-Conversational-AI/agent-quickstart-python.git
+git clone https://github.com/bluemotional/agent-quickstart-python.git
 cd agent-quickstart-python
 agora login
 agora project use <your-project>
@@ -57,14 +63,41 @@ Services:
 - Backend: `http://localhost:8000`
 - API docs: `http://localhost:8000/docs`
 
-## Deploy
+## Deploy on Railway
+
+This template is meant to be published as a Railway template listing.
+
+The Railway template listing is the primary discovery surface. The GitHub repository is `bluemotional/agent-quickstart-python`, the developer-controlled fork used as the template source repo.
+
+### Template Identity
+
+- Template name: `Realtime Voice Agent`
+- Subtitle: `Built with Agora, Python, and Next.js`
+- Primary CTA: `Deploy on Railway`
+- Credential note: `Bring your own Agora credentials`
+
+### Get Your Credentials
+
+These are the deployer's own Agora credentials, not the template author's.
+
+1. Run `agora login`
+2. Run `agora project use <project>`
+3. Run `agora project env --with-secrets`
+4. Copy `AGORA_APP_ID` and `AGORA_APP_CERTIFICATE`
+5. Paste them into Railway Variables
+
+### Deploy
 
 Deploy `web` as a Next.js app and `server` as a reachable Python service.
+Railway builds both services from source and installs their runtime dependencies during deployment, so there is no separate SDK download step for users.
 
-Browser-facing `/api/*` routes in Next proxy to FastAPI via:
+Set the `server` service root directory to `server` and point its config file at `/server/railway.json`.
+Do the same for `web` with root directory `web` and config file `/web/railway.json`.
+
+Browser-facing `/api/*` routes in Next proxy to FastAPI via the `server` service's private domain and listening port:
 
 ```bash
-AGENT_BACKEND_URL=https://your-python-backend.example.com
+AGENT_BACKEND_URL=http://${{server.RAILWAY_PRIVATE_DOMAIN}}:${{server.PORT}}
 ```
 
 Set backend env values:
@@ -83,6 +116,10 @@ agora project env write server/.env.local
 rg "^(AGORA_APP_ID|AGORA_APP_CERTIFICATE)=" server/.env.local
 ```
 
+This repository is intended to be published as `bluemotional/agent-quickstart-python`, the Railway template source repo. The official Agora quickstart remains upstream only.
+
+Railway uses `server/` for the Python service and `web/` for the Next.js service. The template includes `railway.json` files in both service directories, and Railway service settings should point at `/server/railway.json` and `/web/railway.json` because config-as-code files do not follow the root-directory path.
+
 ## Environment variables
 
 Primary backend env file: [`server/.env.example`](server/.env.example).
@@ -93,7 +130,7 @@ Primary backend env file: [`server/.env.example`](server/.env.example).
 | `AGORA_APP_CERTIFICATE` | ✅ | — | Agora Console -> Project -> App Certificate (server only) |
 | `AGENT_GREETING` |  | built-in greeting | Optional opening line override |
 | `PORT` |  | `8000` | FastAPI server port |
-| `AGENT_BACKEND_URL` (web deploy) | ✅ | — | Required in deployed `web` app when proxying to external FastAPI |
+| `AGENT_BACKEND_URL` (web deploy) | ✅ | — | Required in deployed `web` app when proxying to the `server` service over Railway private networking |
 
 > **Default vs BYOK** — this quickstart defaults to Agora-managed STT + LLM + TTS in the backend. Enable BYOK by uncommenting provider blocks in `server/src/agent.py` and adding matching keys.
 

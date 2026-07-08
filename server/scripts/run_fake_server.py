@@ -26,6 +26,13 @@ class FakeAgent:
         self.started_agent_ids.discard(agent_id)
 
 
+def _resolve_port() -> int:
+    fake_port = os.getenv("FAKE_SERVER_PORT")
+    if fake_port:
+        return int(fake_port)
+    return int(os.getenv("PORT", "8000"))
+
+
 def main():
     server_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     src_root = os.path.join(server_root, "src")
@@ -36,7 +43,7 @@ def main():
 
     server_module.agent = FakeAgent()
 
-    port = int(os.getenv("PORT", "8000"))
+    port = _resolve_port()
     uvicorn.run(server_module.app, host="127.0.0.1", port=port)
 
 

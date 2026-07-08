@@ -128,7 +128,7 @@ async function main() {
       ...process.env,
       AGORA_APP_ID: '0123456789abcdef0123456789abcdef',
       AGORA_APP_CERTIFICATE: 'fedcba9876543210fedcba9876543210',
-      PORT: String(port),
+      FAKE_SERVER_PORT: String(port),
     },
     stdout: 'ignore',
     stderr: 'pipe',
