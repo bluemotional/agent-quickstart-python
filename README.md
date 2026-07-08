@@ -1,67 +1,22 @@
-# Realtime Voice Agent
+# Realtime Voice Agent for Railway
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Python](https://img.shields.io/badge/python-%3E%3D3.10-blue)](https://www.python.org/)
 [![Bun](https://img.shields.io/badge/bun-latest-black)](https://bun.sh/)
 
-Built with Agora, Python, and Next.js.
+Deploy an Agora-powered realtime voice agent on Railway with Python and Next.js.
 
 Bring your own Agora credentials.
 
-Deploy on Railway.
+This repository is the Railway template source for `bluemotional/agent-quickstart-python`.
 
-Build a production-style voice agent with a Next.js web client and Python FastAPI backend. This quickstart includes live transcript, agent visualizer ([Agent UIKit](https://agoraio-conversational-ai.github.io/agent-uikit/)), and managed STT/LLM/TTS defaults.
+Build a production-style voice agent with a Next.js web client and Python FastAPI backend. This template includes live transcript, agent visualizer ([Agent UIKit](https://agoraio-conversational-ai.github.io/agent-uikit/)), and managed STT/LLM/TTS defaults.
 
 ## Prerequisites
 
 - [Python 3.10+](https://www.python.org/)
 - [Bun](https://bun.sh/)
 - [Agora CLI](https://github.com/AgoraIO/cli)
-
-## Run It
-
-Install the CLI (skip if already installed), scaffold the Python quickstart, install dependencies, and run.
-
-1. **Install the Agora CLI and sign in** (skip if `agora` is already on your PATH):
-
-   ```bash
-   curl -fsSL https://raw.githubusercontent.com/AgoraIO/cli/main/install.sh | sh -s -- --add-to-path
-   agora login
-   ```
-
-2. **Scaffold and run** (replace `my-python-demo` with your own project name):
-
-   ```bash
-   agora init my-python-demo --template python
-   cd my-python-demo
-   bun run setup
-   bun run dev
-   ```
-
-3. Open [http://localhost:3000](http://localhost:3000) and click **Start conversation**.
-
-If the agent does not join or transcripts do not appear, run **`agora project doctor --deep`** to check credentials, feature enablement, network reachability, and local env binding.
-
-### Working from a clone of this repository
-
-Use this path if you already cloned **this** repo:
-
-```bash
-git clone https://github.com/bluemotional/agent-quickstart-python.git
-cd agent-quickstart-python
-agora login
-agora project use <your-project>
-bun run setup
-agora project env write server/.env.local
-bun run doctor:local
-bun run dev
-```
-
-Services:
-
-- Frontend: `http://localhost:3000`
-- Backend: `http://localhost:8000`
-- API docs: `http://localhost:8000/docs`
 
 ## Deploy on Railway
 
@@ -108,6 +63,39 @@ AGORA_APP_CERTIFICATE=your_agora_app_certificate
 AGENT_GREETING=optional_custom_greeting
 ```
 
+This repository is intended to be published as `bluemotional/agent-quickstart-python`, the Railway template source repo. The official Agora quickstart remains upstream only.
+
+## Run Locally
+
+Use this path if you want to run **this Railway template source repo** locally:
+
+```bash
+git clone https://github.com/bluemotional/agent-quickstart-python.git
+cd agent-quickstart-python
+agora login
+agora project use <your-project>
+bun run setup
+agora project env write server/.env.local
+bun run doctor:local
+bun run dev
+```
+
+Services:
+
+- Frontend: `http://localhost:3000`
+- Backend: `http://localhost:8000`
+- API docs: `http://localhost:8000/docs`
+
+If the agent does not join or transcripts do not appear, run **`agora project doctor --deep`** to check credentials, feature enablement, network reachability, and local env binding.
+
+### Optional: scaffold a fresh official quickstart instead
+
+If you want the upstream general-purpose quickstart rather than this Railway-oriented fork:
+
+1. Install the Agora CLI and sign in
+2. Run `agora init my-python-demo --template python`
+3. `cd my-python-demo && bun run setup && bun run dev`
+
 To export local env values from the Agora CLI-bound project:
 
 ```bash
@@ -115,8 +103,6 @@ agora project use <your-project>
 agora project env write server/.env.local
 rg "^(AGORA_APP_ID|AGORA_APP_CERTIFICATE)=" server/.env.local
 ```
-
-This repository is intended to be published as `bluemotional/agent-quickstart-python`, the Railway template source repo. The official Agora quickstart remains upstream only.
 
 Railway uses `server/` for the Python service and `web/` for the Next.js service. The template includes `railway.json` files in both service directories, and Railway service settings should point at `/server/railway.json` and `/web/railway.json` because config-as-code files do not follow the root-directory path.
 
