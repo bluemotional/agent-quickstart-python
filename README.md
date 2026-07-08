@@ -4,11 +4,11 @@
 [![Python](https://img.shields.io/badge/python-%3E%3D3.10-blue)](https://www.python.org/)
 [![Bun](https://img.shields.io/badge/bun-latest-black)](https://bun.sh/)
 
-Deploy an Agora-powered realtime voice agent on Railway with Python and Next.js.
+Deploy an Agora voice agent on Railway with Python and Next.js.
 
 Bring your own Agora credentials.
 
-This repository is the Railway template source for `bluemotional/agent-quickstart-python`.
+This repository provides a deployable Agora voice agent template for Railway and serves as the Railway template source for `bluemotional/agent-quickstart-python`.
 
 Build a production-style voice agent with a Next.js web client and Python FastAPI backend. This template includes live transcript, agent visualizer ([Agent UIKit](https://agoraio-conversational-ai.github.io/agent-uikit/)), and managed STT/LLM/TTS defaults.
 
